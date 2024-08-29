@@ -33,7 +33,7 @@ type Request struct {
 	t     time.Time //add time so we can log it as well
 }
 
-//could improve the constructor to make it clearer to use
+// could improve the constructor to make it clearer to use
 func NewServer(id uint8) (*Server, error) {
 	s := &Server{}
 
@@ -58,6 +58,8 @@ func NewServer(id uint8) (*Server, error) {
 	s.function[WriteHoldingRegister_fc] = WriteHoldingRegister
 	s.function[WriteMultipleCoils_fc] = WriteMultipleCoils
 	s.function[WriteHoldingRegisters_fc] = WriteHoldingRegisters
+
+	s.closeChan = make(chan struct{})
 
 	s.requestChan = make(chan *Request)
 	go s.handler()
@@ -109,14 +111,11 @@ func (s *Server) handler() {
 			close(s.outChan)
 			return
 		}
-
 	}
 }
 
 // Close stops listening to TCP/IP ports and closes serial ports.
 func (s *Server) Close() {
-
-	s.closeChan = make(chan struct{})
 	close(s.closeChan)
 	for _, listen := range s.listeners {
 		listen.Close()
